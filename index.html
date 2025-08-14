@@ -1,40 +1,64 @@
-<script src="https://cdn.hellosign.com/public/js/hellosign-embedded.LATEST.min.js"></script>
-<script>
-(async function () {
-  const CLIENT_ID = "f124d14e450e53a65cc02a69f4e6d12e";
-  const SIGN_URL_ENDPOINT = "https://localhost:5043/api/dropboxsign/sign-url"; // or your tunnel URL
 
-  const sid = new URLSearchParams(location.search).get("sid");
-  if (!sid) { document.getElementById("msg").textContent = "Missing sid"; return; }
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Moxie – Sign</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.hellosign.com/public/js/hellosign-embedded.LATEST.min.js"></script>
+    <style>
+      html, body { height:100%; margin:0; background:#f6f8fb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      #app { max-width: 920px; margin: 0 auto; padding: 16px; height: 100%; display: flex; flex-direction: column; }
+      #container { flex: 1 1 auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow: 0 8px 20px rgba(0,0,0,.04); }
+      #msg { margin: 12px 0; color:#6b7280; }
+      .hidden { display:none; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="msg">Loading your document...</div>
+      <div id="container"></div>
+    </div>
 
-  // fetch sign_url from YOUR backend (not from Dropbox Sign directly)
-  let signUrl;
-  try {
-    const r = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sid)}`);
-    if (!r.ok) throw new Error(await r.text());
-    ({ signUrl } = await r.json());
-    if (!signUrl) throw new Error("No signUrl in response");
-  } catch (err) {
-    document.getElementById("msg").textContent = "Could not retrieve signing link.";
-    console.error(err);
-    return;
-  }
-
-  try {
-    const client = new window.HelloSign({ clientId: CLIENT_ID });
-    client.open(signUrl, {
-      container: document.getElementById("container"),
-      
-      // keep this true while using github.io (unverified domain)
-      skipDomainVerification: true,
-      //
-      
-      messageListener: (evt) => console.log("HS:", evt),
-    });
-    document.getElementById("msg").classList.add("hidden");
-  } catch (err) {
-    document.getElementById("msg").textContent = "Could not open the signing session.";
-    console.error(err);
-  }
-})();
-</script>
+    <script src="https://cdn.hellosign.com/public/js/hellosign-embedded.LATEST.min.js"></script>
+    <script>
+    (async function () {
+      const CLIENT_ID = "f124d14e450e53a65cc02a69f4e6d12e";
+      const SIGN_URL_ENDPOINT = "https://localhost:5043/api/dropboxsign/sign-url"; // or your tunnel URL
+    
+      const sid = new URLSearchParams(location.search).get("sid");
+      if (!sid) { document.getElementById("msg").textContent = "Missing sid"; return; }
+    
+      // fetch sign_url from YOUR backend (not from Dropbox Sign directly)
+      let signUrl;
+      try {
+        const r = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sid)}`);
+        if (!r.ok) throw new Error(await r.text());
+        ({ signUrl } = await r.json());
+        if (!signUrl) throw new Error("No signUrl in response");
+      } catch (err) {
+        document.getElementById("msg").textContent = "Could not retrieve signing link.";
+        console.error(err);
+        return;
+      }
+    
+      try {
+        const client = new window.HelloSign({ clientId: CLIENT_ID });
+        client.open(signUrl, {
+          container: document.getElementById("container"),
+          
+          // keep this true while using github.io (unverified domain)
+          skipDomainVerification: true,
+          //
+          
+          messageListener: (evt) => console.log("HS:", evt),
+        });
+        document.getElementById("msg").classList.add("hidden");
+      } catch (err) {
+        document.getElementById("msg").textContent = "Could not open the signing session.";
+        console.error(err);
+      }
+    })();
+    </script>
+  </body>
+</html>
