@@ -40,6 +40,10 @@
         let signUrl;
         try {
           const resp = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sigId)}`, { credentials: 'omit' });
+          
+          const txt = await resp.text();
+          console.log("sign-url raw response:", txt);
+          
           if (!resp.ok) throw new Error(`Backend returned ${resp.status}`);
           const { signUrl: urlFromApi } = await resp.json();
           if (!urlFromApi) throw new Error('No signUrl in response');
@@ -55,11 +59,11 @@
           // NOTE: with this CDN build you don't "new" HelloSign — you init then open
           HelloSign.init(CLIENT_ID);
 
-          HelloSign.open(signUrl, {
+          HelloSign.open({
+            url: signUrl,
             container: containerEl,
-            // keep this true while using github.io (until your domain is approved in the Dropbox Sign app)
-            skipDomainVerification: true,
-            messageListener: (evt) => console.log('HS event:', evt),
+            skipDomainVerification: true, // temp keep while using github.io (unverified)?
+            messageListener: (evt) => console.log("HS event:", evt)
           });
 
           msgEl.classList.add('hidden');
