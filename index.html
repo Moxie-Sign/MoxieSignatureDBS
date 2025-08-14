@@ -36,18 +36,20 @@
         const sigId = qs.get('sid');
         if (!sigId) { msgEl.textContent = "Missing `sid` (signature_id) in URL."; return; }
 
-        // 1) Ask YOUR backend for a fresh sign_url
+        // 1) Call Moxie API to get embedded signature request URL.
         let signUrl;
         try {
           const resp = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sigId)}`, { credentials: 'omit' });
-          if (!resp.ok) throw new Error(`Backend returned ${resp.status}`);
+
+          //debugging 
+          const raw = await resp.text(); 
+          console.log("sign-url raw response:", raw);
           
-          const data = await resp.text();
-          console.log("sign-url raw response:", data);
+          if (!resp.ok) throw new Error(`Backend ${resp.status}: ${raw}`);
           
-          const signUrl = data.signUrl;
-          if (!signUrl) throw new Error('No signUrl in response');
-          signUrl = urlFromApi;
+          const data = JSON.parse(raw);
+          signUrl = data && data.signUrl;
+          if (!signUrl) throw new Error("No signUrl in response JSON");
         } catch (e) {
           console.error(e);
           msgEl.textContent = 'Could not retrieve signing link. Please try again.';
