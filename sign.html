@@ -22,13 +22,12 @@
     <script>
       (async function () {
         // ======= CONFIG =======
-        const CLIENT_ID = "YOUR_CLIENT_ID"; // from your Dropbox Sign API app
-        // Your backend route that returns a fresh sign_url for a given signature_id:
-        const SIGN_URL_ENDPOINT = "https://your.api.example.com/api/dropboxsign/sign-url";
+        const CLIENT_ID = "f124d14e450e53a65cc02a69f4e6d12e";
+        const SIGN_URL_ENDPOINT = "http://localhost:5042/api/dropboxsign/sign-url"; //TEMP using local url.
         // ======================
 
         const qs = new URLSearchParams(location.search);
-        const sigId = qs.get("sid"); // signature_id query string param
+        const sigId = qs.get("sid");
         if (!sigId) {
           document.getElementById("msg").textContent = "Missing `sid` (signature_id) in URL.";
           return;
@@ -37,10 +36,8 @@
         // Fetch a fresh (1-hour) sign_url from your backend
         let signUrl;
         try {
-          const resp = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sigId)}`, {
-            // If your API sets cookies for auth, include them; otherwise omit:
-            // credentials: "include"
-          });
+          const resp = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sigId)}`, {});
+          
           if (!resp.ok) throw new Error(`Backend returned ${resp.status}`);
           const data = await resp.json();
           signUrl = data.signUrl;
@@ -54,15 +51,16 @@
         // Initialize Dropbox Sign embedded
         try {
           const client = new window.HelloSign({ clientId: CLIENT_ID });
-          // In development ONLY, if your domain isn’t verified yet:
-          // client.open(signUrl, { container: document.getElementById("container"), skipDomainVerification: true });
+          
+          // TEMP for development ONLY, domain isn’t verified yet:
+          client.open(signUrl, { container: document.getElementById("container"), skipDomainVerification: true });
 
           client.open(signUrl, {
             container: document.getElementById("container"),
             // Remove this once your domain is verified in your Dropbox Sign app:
-            // skipDomainVerification: true,
+            skipDomainVerification: true,
             // Optional callbacks
-            // messageListener: (eventData) => console.log("HS event:", eventData)
+            messageListener: (eventData) => console.log("HS event:", eventData)
           });
 
           document.getElementById("msg").classList.add("hidden");
