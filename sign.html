@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Moxie – Sign</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://unpkg.com/hellosign-embedded/dist/hellosign-embedded.min.js"></script>
+    <style>
+      html, body { height:100%; margin:0; background:#f6f8fb; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      #app { max-width: 920px; margin: 0 auto; padding: 16px; height: 100%; display: flex; flex-direction: column; }
+      #container { flex: 1 1 auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow: 0 8px 20px rgba(0,0,0,.04); }
+      #msg { margin: 12px 0; color:#6b7280; }
+      .hidden { display:none; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="msg">Loading your document...</div>
+      <div id="container"></div>
+    </div>
+
+    <script>
+      (async function () {
+        // ======= CONFIG =======
+        const CLIENT_ID = "YOUR_CLIENT_ID"; // from your Dropbox Sign API app
+        // Your backend route that returns a fresh sign_url for a given signature_id:
+        const SIGN_URL_ENDPOINT = "https://your.api.example.com/api/dropboxsign/sign-url";
+        // ======================
+
+        const qs = new URLSearchParams(location.search);
+        const sigId = qs.get("sid"); // signature_id query string param
+        if (!sigId) {
+          document.getElementById("msg").textContent = "Missing `sid` (signature_id) in URL.";
+          return;
+        }
+
+        // Fetch a fresh (1-hour) sign_url from your backend
+        let signUrl;
+        try {
+          const resp = await fetch(`${SIGN_URL_ENDPOINT}?sid=${encodeURIComponent(sigId)}`, {
+            // If your API sets cookies for auth, include them; otherwise omit:
+            // credentials: "include"
+          });
+          if (!resp.ok) throw new Error(`Backend returned ${resp.status}`);
+          const data = await resp.json();
+          signUrl = data.signUrl;
+          if (!signUrl) throw new Error("No signUrl in response");
+        } catch (e) {
+          document.getElementById("msg").textContent = "Could not retrieve signing link. Please try again.";
+          console.error(e);
+          return;
+        }
+
+        // Initialize Dropbox Sign embedded
+        try {
+          const client = new window.HelloSign({ clientId: CLIENT_ID });
+          // In development ONLY, if your domain isn’t verified yet:
+          // client.open(signUrl, { container: document.getElementById("container"), skipDomainVerification: true });
+
+          client.open(signUrl, {
+            container: document.getElementById("container"),
+            // Remove this once your domain is verified in your Dropbox Sign app:
+            // skipDomainVerification: true,
+            // Optional callbacks
+            // messageListener: (eventData) => console.log("HS event:", eventData)
+          });
+
+          document.getElementById("msg").classList.add("hidden");
+        } catch (e) {
+          document.getElementById("msg").textContent = "Could not open the signing session. Please refresh.";
+          console.error(e);
+        }
+      })();
+    </script>
+  </body>
+</html>
