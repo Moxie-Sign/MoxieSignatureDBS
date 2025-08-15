@@ -24,8 +24,7 @@
       window.addEventListener('DOMContentLoaded', async () => {
         // ======= CONFIG =======
         const CLIENT_ID = "f124d14e450e53a65cc02a69f4e6d12e";
-        // Use your HTTPS backend (local dev via HTTPS or a tunnel)
-        const SIGN_URL_ENDPOINT = "https://localhost:5043/api/dropboxsign/sign-url";
+        const SIGN_URL_ENDPOINT = "https://ygr7c2wjw2.execute-api.us-east-2.amazonaws.com"; //AWS API Gateway.
         // ======================
 
         const msgEl = document.getElementById('msg');
@@ -43,8 +42,7 @@
 
           //debugging 
           const raw = await resp.text(); 
-          console.log("sign-url raw response:", raw);
-          
+          //console.log("sign-url raw response:", raw);
           if (!resp.ok) throw new Error(`Backend ${resp.status}: ${raw}`);
           
           const data = JSON.parse(raw);
@@ -58,13 +56,12 @@
 
         // 2) Initialize & open embedded signing
         try {
-          // NOTE: with this CDN build you don't "new" HelloSign — you init then open
           HelloSign.init(CLIENT_ID);
 
           HelloSign.open({
             url: signUrl,
             container: containerEl,
-            //skipDomainVerification: true, // temp keep while using github.io (unverified)?
+            //skipDomainVerification: true, // enable only for testing.
             messageListener: (evt) => console.log("HS event:", evt)
           });
 
